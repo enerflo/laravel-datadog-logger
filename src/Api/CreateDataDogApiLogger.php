@@ -39,7 +39,8 @@ class CreateDataDogApiLogger
             $config['apiKey'],
             $isEuropeRegion,
             $config['level'] ?? Logger::DEBUG,
-            $config['bubble'] ?? true
+            $config['bubble'] ?? true,
+            $config['service'] ?? '',
         );
 
         return (new Logger('datadog-api'))->pushHandler($dataDogHandler);

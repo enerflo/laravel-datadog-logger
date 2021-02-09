@@ -38,20 +38,27 @@ class DataDogApiHandler extends AbstractProcessingHandler
     protected $host;
 
     /**
+     * @var string
+     */
+    protected $service;
+
+    /**
      * @param string     $token        API token supplied by DataDog
      * @param bool       $europeRegion Are your logs located in the EU region?
      * @param string|int $level        The minimum logging level to trigger this handler
      * @param bool       $bubble       Whether or not messages that are handled should bubble up the stack.
+     * @param string     $service      The datadog service that this log belongs to
      *
      * @throws MissingExtensionException If the curl extension is missing
      */
-    public function __construct(string $token, bool $europeRegion = false, $level = Logger::DEBUG, bool $bubble = true)
+    public function __construct(string $token, bool $europeRegion = false, $level = Logger::DEBUG, bool $bubble = true, string $service = '')
     {
         if (!extension_loaded('curl')) {
             throw new MissingExtensionException('The curl extension is needed to use the DataDogApiHandler');
         }
         $this->token = $token;
         $this->host  = $europeRegion ? self::HOST_EU : self::HOST_US;
+        $this->service = $service;
         parent::__construct($level, $bubble);
     }
 
@@ -103,7 +110,10 @@ class DataDogApiHandler extends AbstractProcessingHandler
                     'Content-Type' => 'application/json',
                 ],
                 'connect_timeout' => 3.14, // pi
-                'body'            => $data
+                'body'            => json_encode([
+                    'message' => $data,
+                    'service' => $this->service,
+                ]),
             ]);
         } catch (GuzzleException $e) {
             return;
